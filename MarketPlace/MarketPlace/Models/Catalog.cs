@@ -2,6 +2,6 @@
 {
     public class Catalog : BaseEntity<int>
     {
-        public List<Good> Goods { get; set; }
+        public List<Good> Goods { get; set; } = new();
     }
 }

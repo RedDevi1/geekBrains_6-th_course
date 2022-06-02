@@ -1,0 +1,10 @@
+﻿@model Catalog
+
+@{
+    ViewData["Title"] = "Список товаров";
+}
+
+@foreach (var good in Model.Goods)
+{
+    <div> Артикул товара: @good.Article, Название товара: @good.Name</div>
+}

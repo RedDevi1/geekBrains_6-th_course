@@ -1,10 +1,11 @@
+using MarketPlace.Interfaces;
 using MarketPlace.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddSingleton<Catalog>();
+builder.Services.AddSingleton<IGoodsCatalog, GoodsCatalog>();
 
 var app = builder.Build();
 

@@ -7,6 +7,7 @@ namespace MarketPlace.Controllers
     public class GoodsCatalogsController : Controller
     {
         private readonly IGoodsCatalog catalog;
+        private readonly object _syncObj_1 = new();
         public GoodsCatalogsController(IGoodsCatalog catalog)
         {
             this.catalog = catalog;
@@ -14,8 +15,11 @@ namespace MarketPlace.Controllers
         [HttpPost]
         public IActionResult GoodsCreation(Good model)
         {
-            catalog.Create(model);
-            return View();
+            lock (_syncObj_1)
+            {
+                catalog.Create(model);
+                return View();
+            }              
         }
 
         [HttpGet]
@@ -27,7 +31,10 @@ namespace MarketPlace.Controllers
         [HttpGet]
         public IActionResult Products()
         {
-            return View(catalog);
+            lock (_syncObj_1)
+            {
+                return View(catalog);
+            }              
         }
     }
 }

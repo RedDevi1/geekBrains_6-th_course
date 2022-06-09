@@ -2,7 +2,7 @@
 {
     public class Good : BaseEntity<int>
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
         public long Article { get; set; }
         public int BrandsId { get; set; }
         public int TypeOfGoodsId { get; set; }

@@ -1,12 +1,13 @@
 ﻿using MarketPlace.Models;
+using System.Collections.Concurrent;
 
 namespace MarketPlace.Interfaces
 {
     public interface ICatalog<T> where T : class
     {
-        IReadOnlyList<T> GetAll();
+        ConcurrentDictionary<int, T> GetAll();
         void Create(T entity);
         void Update(T entity);
-        void Delete(int id);
+        void Delete(long article);
     }
 }

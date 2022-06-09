@@ -9,5 +9,5 @@
 
 @foreach (var good in Model.Goods)
 {
-    <div> Артикул товара: @good.Article, Название товара: @good.Name</div>
+    <div> Артикул товара: @good.Value.Article, Название товара: @good.Value.Name</div>
 }

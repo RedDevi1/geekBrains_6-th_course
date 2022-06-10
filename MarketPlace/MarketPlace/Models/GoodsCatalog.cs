@@ -14,42 +14,21 @@ namespace MarketPlace.Models
         {
             if (entity != null)
             {
-
-                try
-                {
-                    goodsCatalog.TryAdd(entity.Id, entity);
-                }
-                catch (Exception exception)
-                {
-
-                }
-
+                goodsCatalog.TryAdd(entity.Id, entity);
             }
         }
         public void Delete(long article)
         {
-
-            try
+            if (goodsCatalog.Count > 0)
             {
-                if (goodsCatalog.Count > 0)
-                {
-                    var removingGood = goodsCatalog.FirstOrDefault(t => t.Value.Article == article);
-                    goodsCatalog.TryRemove(removingGood.Key, out _);
-                }
+                var removingGood = goodsCatalog.FirstOrDefault(t => t.Value.Article == article);
+                goodsCatalog.TryRemove(removingGood.Key, out _);
             }
-            catch (Exception exception)
-            {
-
-            }
-
         }
 
         public ConcurrentDictionary<int, Good> GetAll()
         {
-            lock (_syncObj)
-            {
-                return goodsCatalog;
-            }
+            return goodsCatalog;
         }
 
         public void Update(Good entity)

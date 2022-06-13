@@ -1,59 +1,34 @@
 ﻿using MarketPlace.Interfaces;
+using System.Collections.Concurrent;
 
 namespace MarketPlace.Models
 {
     public class GoodsCatalog : BaseEntity<int>, IGoodsCatalog
     {
-        private readonly List<Good> goods = new();
+        private readonly ConcurrentDictionary<int, Good> goodsCatalog = new();
         private readonly object _syncObj = new();
 
-        public List<Good> Goods { get => goods; }
+        public ConcurrentDictionary<int, Good> Goods { get => goodsCatalog; }
 
         public void Create(Good entity)
         {
             if (entity != null)
             {
-                lock (_syncObj)
-                {
-                    try
-                    {
-                        goods.Add(entity);
-                    }
-                    catch (Exception exception)
-                    {
-
-                    }
-                }                   
+                goodsCatalog.TryAdd(entity.Id, entity);
             }
         }
-        public void Delete(int id)
+        public void Delete(long article)
         {
-            lock (_syncObj)
+            if (goodsCatalog.Count > 0)
             {
-                try
-                {
-                    if (goods.Count > 0)
-                    {
-                        var deletingfGood = goods.Find(x => x.Id == id);
-                        if (deletingfGood != null)
-                        {
-                            goods.Remove(deletingfGood);
-                        }
-                    }
-                }
-                catch (Exception exception)
-                {
-
-                }
-            }               
+                var removingGood = goodsCatalog.FirstOrDefault(t => t.Value.Article == article);
+                goodsCatalog.TryRemove(removingGood.Key, out _);
+            }
         }
 
-        public IReadOnlyList<Good> GetAll()
+        public ConcurrentDictionary<int, Good> GetAll()
         {
-            lock (_syncObj)
-            {
-                return goods;
-            }               
+            return goodsCatalog;
         }
 
         public void Update(Good entity)

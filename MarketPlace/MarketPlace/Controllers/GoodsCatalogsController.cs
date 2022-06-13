@@ -6,10 +6,12 @@ namespace MarketPlace.Controllers
 {
     public class GoodsCatalogsController : Controller
     {
+        private readonly ILogger<GoodsCatalogsController> _logger;
         private readonly IGoodsCatalog catalog;
         private readonly object _syncObj_1 = new();
-        public GoodsCatalogsController(IGoodsCatalog catalog)
+        public GoodsCatalogsController(ILogger<GoodsCatalogsController> logger, IGoodsCatalog catalog)
         {
+            _logger = logger;
             this.catalog = catalog;
         }
         [HttpPost]
@@ -17,7 +19,14 @@ namespace MarketPlace.Controllers
         {
             lock (_syncObj_1)
             {
-                catalog.Create(model);
+                try
+                {
+                    catalog.Create(model);                   
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex.Message);
+                }
                 return View();
             }              
         }
@@ -35,6 +44,27 @@ namespace MarketPlace.Controllers
             {
                 return View(catalog);
             }              
+        }
+        [HttpPost]
+        public IActionResult GoodsRemoving(long article)
+        {
+            lock (_syncObj_1)
+            {
+                try
+                {
+                    catalog.Delete(article);
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogError(ex.Message);
+                }
+                return View();
+            }               
+        }
+        [HttpGet]
+        public IActionResult GoodsRemoving()
+        {
+            return View();
         }
     }
 }

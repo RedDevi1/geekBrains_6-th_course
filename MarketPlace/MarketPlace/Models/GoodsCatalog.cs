@@ -12,10 +12,11 @@ namespace MarketPlace.Models
 
         public void Create(Good entity)
         {
-            if (entity != null)
+            if (entity == null)
             {
-                goodsCatalog.TryAdd(entity.Id, entity);
+                throw new ArgumentNullException(nameof(entity));               
             }
+            goodsCatalog.TryAdd(entity.Id, entity);
         }
         public void Delete(long article)
         {

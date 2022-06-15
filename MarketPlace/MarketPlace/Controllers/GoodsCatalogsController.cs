@@ -9,10 +9,12 @@ namespace MarketPlace.Controllers
         private readonly ILogger<GoodsCatalogsController> _logger;
         private readonly IGoodsCatalog catalog;
         private readonly object _syncObj_1 = new();
-        public GoodsCatalogsController(ILogger<GoodsCatalogsController> logger, IGoodsCatalog catalog)
+        private readonly IEmailService _emailService;
+        public GoodsCatalogsController(ILogger<GoodsCatalogsController> logger, IGoodsCatalog catalog, IEmailService emailService)
         {
             _logger = logger;
             this.catalog = catalog;
+            _emailService = emailService;
         }
         [HttpPost]
         public IActionResult GoodsCreation(Good model)
@@ -21,7 +23,8 @@ namespace MarketPlace.Controllers
             {
                 try
                 {
-                    catalog.Create(model);                   
+                    catalog.Create(model);
+                    _emailService.SendEmail("nickita_piter@mail.ru", "test", "test-message");
                 }
                 catch (Exception ex)
                 {

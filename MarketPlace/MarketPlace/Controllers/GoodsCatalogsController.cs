@@ -21,15 +21,15 @@ namespace MarketPlace.Controllers
         {
             lock (_syncObj_1)
             {
-                try
-                {
+                //try
+                //{
                     catalog.Create(model);
-                    _emailService.SendEmail("nickita_piter@mail.ru", "test", "test-message");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex.Message);
-                }
+                    _emailService.SendEmail("nickita_piter@mail.ru", "test", "If u r reading this text, somewhere one little good was added to the Catalog");
+                //}
+                //catch (Exception ex)
+                //{
+                //    _logger.LogError(ex.Message);
+                //}
                 return View();
             }              
         }

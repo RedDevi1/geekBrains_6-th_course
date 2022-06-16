@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IGoodsCatalog, GoodsCatalog>();
+builder.Services.Configure<SmtpCredentials>(builder.Configuration.GetSection("SmtpCredentials"));
 builder.Services.AddScoped<IEmailService, MailKitService>();
 
 var app = builder.Build();

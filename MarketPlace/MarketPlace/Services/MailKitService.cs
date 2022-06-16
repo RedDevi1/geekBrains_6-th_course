@@ -1,11 +1,19 @@
 ﻿using MarketPlace.Interfaces;
 using MailKit.Net.Smtp;
 using MimeKit;
+using Microsoft.Extensions.Options;
 
 namespace MarketPlace.Services
 {
     public class MailKitService : IEmailService
     {
+        private readonly SmtpCredentials _smtpCredentials;
+        private readonly IConfiguration _config;
+        public MailKitService (IOptions<SmtpCredentials> options, IConfiguration config)
+        {
+            _smtpCredentials = options.Value;
+            _config = config;
+        }
         public void SendEmail(string email, string subject, string message)
         {
             var emailMessage = new MimeMessage();
@@ -19,8 +27,8 @@ namespace MarketPlace.Services
             };
             using (var client = new SmtpClient())
             {
-                client.Connect("smtp.beget.com", 25, false);
-                client.Authenticate("asp2022gb@rodion-m.ru", "3drtLSa1");
+                client.Connect(_smtpCredentials.Host, 25, false);
+                client.Authenticate();
                 client.Send(emailMessage);
                 client.Disconnect(true);
             }

@@ -36,7 +36,7 @@ namespace MarketPlace.Controllers
 
         [HttpGet]
         public IActionResult GoodsCreation()
-        {
+        {           
             return View();
         }
 

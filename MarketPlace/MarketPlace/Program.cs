@@ -1,6 +1,7 @@
 using MarketPlace.Interfaces;
 using MarketPlace.Services;
 using MarketPlace.Models;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IGoodsCatalog, GoodsCatalog>();
 builder.Services.Configure<SmtpCredentials>(builder.Configuration.GetSection("SmtpCredentials"));
 builder.Services.AddScoped<IEmailService, MailKitService>();
+builder.Host.UseSerilog((_, conf) => conf.WriteTo.Console());
 
 var app = builder.Build();
 

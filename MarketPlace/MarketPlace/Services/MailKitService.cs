@@ -8,11 +8,9 @@ namespace MarketPlace.Services
     public class MailKitService : IEmailService
     {
         private readonly SmtpCredentials _smtpCredentials;
-        private readonly IConfiguration _config;
-        public MailKitService (IOptions<SmtpCredentials> options, IConfiguration config)
+        public MailKitService (IOptions<SmtpCredentials> options)
         {
             _smtpCredentials = options.Value;
-            _config = config;
         }
         public void SendEmail(string email, string subject, string message)
         {
@@ -28,7 +26,7 @@ namespace MarketPlace.Services
             using (var client = new SmtpClient())
             {
                 client.Connect(_smtpCredentials.Host, 25, false);
-                client.Authenticate();
+                client.Authenticate(_smtpCredentials.UserName, _smtpCredentials.Password);
                 client.Send(emailMessage);
                 client.Disconnect(true);
             }

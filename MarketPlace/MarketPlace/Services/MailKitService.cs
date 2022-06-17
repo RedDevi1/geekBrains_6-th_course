@@ -5,13 +5,23 @@ using Microsoft.Extensions.Options;
 
 namespace MarketPlace.Services
 {
-    public class MailKitService : IEmailService
+    public class MailKitService : IEmailService, IDisposable
     {
+        private readonly SmtpClient _client;
         private readonly SmtpCredentials _smtpCredentials;
         public MailKitService (IOptions<SmtpCredentials> options)
         {
             _smtpCredentials = options.Value;
+            _client = new SmtpClient();
+        } 
+
+        public void Dispose()
+        {
+            if (_client.IsConnected)
+                _client.Disconnect(true);
+            _client.Dispose();
         }
+
         public void SendEmail(string email, string subject, string message)
         {
             var emailMessage = new MimeMessage();
@@ -23,13 +33,12 @@ namespace MarketPlace.Services
             {
                 Text = message
             };
-            using (var client = new SmtpClient())
-            {
-                client.Connect(_smtpCredentials.Host, 25, false);
-                client.Authenticate(_smtpCredentials.UserName, _smtpCredentials.Password);
-                client.Send(emailMessage);
-                client.Disconnect(true);
-            }
+
+            if (!_client.IsConnected)
+                _client.Connect(_smtpCredentials.Host, 25, false);
+            if (!_client.IsAuthenticated)
+                _client.Authenticate(_smtpCredentials.UserName, _smtpCredentials.Password);
+            _client.Send(emailMessage);
         }
     }
 }

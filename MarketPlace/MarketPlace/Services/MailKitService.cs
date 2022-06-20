@@ -22,7 +22,7 @@ namespace MarketPlace.Services
             _client.Dispose();
         }
 
-        public void SendEmail(string email, string subject, string message)
+        public async Task SendEmailAsync(string email, string subject, string message)
         {
             var emailMessage = new MimeMessage();
 
@@ -35,10 +35,10 @@ namespace MarketPlace.Services
             };
 
             if (!_client.IsConnected)
-                _client.Connect(_smtpCredentials.Host, 25, false);
+                await _client.ConnectAsync(_smtpCredentials.Host, 25, false);
             if (!_client.IsAuthenticated)
-                _client.Authenticate(_smtpCredentials.UserName, _smtpCredentials.Password);
-            _client.Send(emailMessage);
+                await _client.AuthenticateAsync(_smtpCredentials.UserName, _smtpCredentials.Password);
+            await _client.SendAsync(emailMessage);
         }
     }
 }

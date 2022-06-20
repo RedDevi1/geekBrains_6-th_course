@@ -17,10 +17,7 @@ try
     builder.Services.AddSingleton<IGoodsCatalog, GoodsCatalog>();
     builder.Services.Configure<SmtpCredentials>(builder.Configuration.GetSection("SmtpCredentials"));
     builder.Services.AddScoped<IEmailService, MailKitService>();
-    builder.Host.UseSerilog((ctx, conf) =>
-    {
-        conf.ReadFrom.Configuration(ctx.Configuration);
-    });
+    builder.Host.UseSerilog((ctx, conf) => conf.ReadFrom.Configuration(ctx.Configuration));
 
     var app = builder.Build();
 

@@ -2,6 +2,9 @@
 using MarketPlace.Models;
 using MarketPlace.Interfaces;
 using Serilog;
+using Serilog.Core;
+using Polly;
+using Polly.Retry;
 
 namespace MarketPlace.Controllers
 {
@@ -11,6 +14,8 @@ namespace MarketPlace.Controllers
         private readonly IGoodsCatalog catalog;
         private readonly object _syncObj_1 = new();
         private readonly IEmailService _emailService;
+        private readonly Func<int, TimeSpan>? GetSleepDurationByRetryAttempt;
+
         public GoodsCatalogsController(ILogger<GoodsCatalogsController> logger, IGoodsCatalog catalog, IEmailService emailService)
         {
             _logger = logger;
@@ -18,27 +23,37 @@ namespace MarketPlace.Controllers
             _emailService = emailService;
         }
         [HttpPost]
-        public IActionResult GoodsCreation(Good model)
+        public async Task<IActionResult> GoodsCreationAsync(Good model)
         {
-            lock (_syncObj_1)
+            try
             {
-                try
+                catalog.Create(model);
+                AsyncRetryPolicy? policy = Policy
+                    .Handle<Exception>()
+                    .WaitAndRetryAsync(3, GetSleepDurationByRetryAttempt, onRetry: (exception, retryAttempt) =>
+                    {
+                        _logger.LogWarning(exception, "Error while sending email. Retrying: {Attempt}", retryAttempt);
+                    });
+
+                PolicyResult? result = await policy.ExecuteAndCaptureAsync(token =>
+                _emailService.SendEmailAsync("nickita_piter@mail.ru", "test", "If u r reading this text, somewhere one little good was added to the Catalog"), );
+
+                if (result.Outcome == OutcomeType.Failure)
                 {
-                    catalog.Create(model);
-                    _emailService.SendEmail("nickita_piter@mail.ru", "test", "If u r reading this text, somewhere one little good was added to the Catalog");
+                    _logger.LogError(result.FinalException, "There was an error while sending email");
                 }
-                catch (Exception ex)
-                {
-                    
-                    _logger.LogError(ex.Message);
-                }
-                return View();
-            }              
+            }
+            catch (Exception ex)
+            {
+
+                _logger.LogError(ex.Message);
+            }
+            return View();
         }
 
         [HttpGet]
         public IActionResult GoodsCreation()
-        {           
+        {
             return View();
         }
 
@@ -48,7 +63,7 @@ namespace MarketPlace.Controllers
             lock (_syncObj_1)
             {
                 return View(catalog);
-            }              
+            }
         }
         [HttpPost]
         public IActionResult GoodsRemoving(long article)
@@ -59,12 +74,12 @@ namespace MarketPlace.Controllers
                 {
                     catalog.Delete(article);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     _logger.LogError(ex.Message);
                 }
                 return View();
-            }               
+            }
         }
         [HttpGet]
         public IActionResult GoodsRemoving()

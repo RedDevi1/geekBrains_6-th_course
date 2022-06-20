@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MarketPlace.Models;
 using MarketPlace.Interfaces;
+using Serilog;
 
 namespace MarketPlace.Controllers
 {
@@ -28,6 +29,7 @@ namespace MarketPlace.Controllers
                 }
                 catch (Exception ex)
                 {
+                    
                     _logger.LogError(ex.Message);
                 }
                 return View();

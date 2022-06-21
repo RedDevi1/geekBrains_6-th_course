@@ -18,7 +18,7 @@ namespace MarketPlace.Services
         public void Dispose()
         {
             if (_client.IsConnected)
-                _client.Disconnect(true);
+                _client.DisconnectAsync(true);
             _client.Dispose();
         }
 

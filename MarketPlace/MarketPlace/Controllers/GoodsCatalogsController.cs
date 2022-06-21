@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MarketPlace.Models;
 using MarketPlace.Interfaces;
-using Serilog;
-using Serilog.Core;
 using Polly;
 using Polly.Retry;
 
@@ -14,7 +12,6 @@ namespace MarketPlace.Controllers
         private readonly IGoodsCatalog catalog;
         private readonly object _syncObj_1 = new();
         private readonly IEmailService _emailService;
-        private readonly Func<int, TimeSpan>? GetSleepDurationByRetryAttempt;
 
         public GoodsCatalogsController(ILogger<GoodsCatalogsController> logger, IGoodsCatalog catalog, IEmailService emailService)
         {
@@ -25,18 +22,26 @@ namespace MarketPlace.Controllers
         [HttpPost]
         public async Task<IActionResult> GoodsCreationAsync(Good model)
         {
+            var emailTo = "nickita_piter@mail.ru";
+            var subject = "test";
+            var emailBody = "If u r reading this text, somewhere one little good was added to the Catalog";
             try
             {
                 catalog.Create(model);
                 AsyncRetryPolicy? policy = Policy
                     .Handle<Exception>()
-                    .WaitAndRetryAsync(3, GetSleepDurationByRetryAttempt, onRetry: (exception, retryAttempt) =>
+                    .WaitAndRetryAsync(new[]
+                    {
+                        TimeSpan.FromSeconds(1),
+                        TimeSpan.FromSeconds(2),
+                        TimeSpan.FromSeconds(3)
+                    }, (exception, retryAttempt) =>
                     {
                         _logger.LogWarning(exception, "Error while sending email. Retrying: {Attempt}", retryAttempt);
                     });
 
-                PolicyResult? result = await policy.ExecuteAndCaptureAsync(token =>
-                _emailService.SendEmailAsync("nickita_piter@mail.ru", "test", "If u r reading this text, somewhere one little good was added to the Catalog"), );
+                PolicyResult? result = await policy.ExecuteAndCaptureAsync(() =>
+                _emailService.SendEmailAsync(emailTo, subject, emailBody));
 
                 if (result.Outcome == OutcomeType.Failure)
                 {
@@ -45,7 +50,6 @@ namespace MarketPlace.Controllers
             }
             catch (Exception ex)
             {
-
                 _logger.LogError(ex.Message);
             }
             return View();

@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MarketPlace.Models;
 using MarketPlace.Interfaces;
+using Polly;
+using Polly.Retry;
 
 namespace MarketPlace.Controllers
 {
@@ -10,6 +12,7 @@ namespace MarketPlace.Controllers
         private readonly IGoodsCatalog catalog;
         private readonly object _syncObj_1 = new();
         private readonly IEmailService _emailService;
+
         public GoodsCatalogsController(ILogger<GoodsCatalogsController> logger, IGoodsCatalog catalog, IEmailService emailService)
         {
             _logger = logger;
@@ -17,26 +20,44 @@ namespace MarketPlace.Controllers
             _emailService = emailService;
         }
         [HttpPost]
-        public IActionResult GoodsCreation(Good model)
+        public async Task<IActionResult> GoodsCreationAsync(Good model)
         {
-            lock (_syncObj_1)
+            var emailTo = "nickita_piter@mail.ru";
+            var subject = "test";
+            var emailBody = "If u r reading this text, somewhere one little good was added to the Catalog";
+            try
             {
-                try
+                catalog.Create(model);
+                AsyncRetryPolicy? policy = Policy
+                    .Handle<Exception>()
+                    .WaitAndRetryAsync(new[]
+                    {
+                        TimeSpan.FromSeconds(1),
+                        TimeSpan.FromSeconds(2),
+                        TimeSpan.FromSeconds(3)
+                    }, (exception, retryAttempt) =>
+                    {
+                        _logger.LogWarning(exception, "Error while sending email. Retrying: {Attempt}", retryAttempt);
+                    });
+
+                PolicyResult? result = await policy.ExecuteAndCaptureAsync(() =>
+                _emailService.SendEmailAsync(emailTo, subject, emailBody));
+
+                if (result.Outcome == OutcomeType.Failure)
                 {
-                    catalog.Create(model);
-                    _emailService.SendEmail("nickita_piter@mail.ru", "test", "test-message");
+                    _logger.LogError(result.FinalException, "There was an error while sending email");
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex.Message);
-                }
-                return View();
-            }              
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+            }
+            return View();
         }
 
         [HttpGet]
         public IActionResult GoodsCreation()
-        {           
+        {
             return View();
         }
 
@@ -46,7 +67,7 @@ namespace MarketPlace.Controllers
             lock (_syncObj_1)
             {
                 return View(catalog);
-            }              
+            }
         }
         [HttpPost]
         public IActionResult GoodsRemoving(long article)
@@ -57,12 +78,12 @@ namespace MarketPlace.Controllers
                 {
                     catalog.Delete(article);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     _logger.LogError(ex.Message);
                 }
                 return View();
-            }               
+            }
         }
         [HttpGet]
         public IActionResult GoodsRemoving()

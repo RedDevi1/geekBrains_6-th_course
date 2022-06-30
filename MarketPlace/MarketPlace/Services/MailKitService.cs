@@ -1,12 +1,28 @@
 ﻿using MarketPlace.Interfaces;
 using MailKit.Net.Smtp;
 using MimeKit;
+using Microsoft.Extensions.Options;
 
 namespace MarketPlace.Services
 {
-    public class MailKitService : IEmailService
+    public class MailKitService : IEmailService, IDisposable
     {
-        public void SendEmail(string email, string subject, string message)
+        private readonly SmtpClient _client;
+        private readonly SmtpCredentials _smtpCredentials;
+        public MailKitService (IOptions<SmtpCredentials> options)
+        {
+            _smtpCredentials = options.Value;
+            _client = new SmtpClient();
+        } 
+
+        public void Dispose()
+        {
+            if (_client.IsConnected)
+                _client.DisconnectAsync(true);
+            _client.Dispose();
+        }
+
+        public async Task SendEmailAsync(string email, string subject, string message)
         {
             var emailMessage = new MimeMessage();
 
@@ -17,13 +33,12 @@ namespace MarketPlace.Services
             {
                 Text = message
             };
-            using (var client = new SmtpClient())
-            {
-                client.Connect("smtp.beget.com", 25, false);
-                client.Authenticate("asp2022gb@rodion-m.ru", "3drtLSa1");
-                client.Send(emailMessage);
-                client.Disconnect(true);
-            }
+
+            if (!_client.IsConnected)
+                await _client.ConnectAsync(_smtpCredentials.Host, 25, false);
+            if (!_client.IsAuthenticated)
+                await _client.AuthenticateAsync(_smtpCredentials.UserName, _smtpCredentials.Password);
+            await _client.SendAsync(emailMessage);
         }
     }
 }

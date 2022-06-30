@@ -3,6 +3,7 @@ using MarketPlace.Services;
 using MarketPlace.Models;
 using Serilog;
 using Serilog.Events;
+using MarketPlace.BackgroundServices;
 
 Log.Logger = new LoggerConfiguration()
    .WriteTo.Console()
@@ -18,6 +19,7 @@ try
     builder.Services.Configure<SmtpCredentials>(builder.Configuration.GetSection("SmtpCredentials"));
     builder.Services.AddScoped<IEmailService, MailKitService>();
     builder.Host.UseSerilog((ctx, conf) => conf.ReadFrom.Configuration(ctx.Configuration));
+    builder.Services.AddHostedService<ServerRuningEmailSender>();
 
     var app = builder.Build();
 

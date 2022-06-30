@@ -12,6 +12,7 @@ namespace MarketPlace.Controllers
         private readonly IGoodsCatalog catalog;
         private readonly object _syncObj_1 = new();
         private readonly IEmailService _emailService;
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
 
         public GoodsCatalogsController(ILogger<GoodsCatalogsController> logger, IGoodsCatalog catalog, IEmailService emailService)
         {
@@ -20,14 +21,15 @@ namespace MarketPlace.Controllers
             _emailService = emailService;
         }
         [HttpPost]
-        public async Task<IActionResult> GoodsCreationAsync(Good model)
+        public async Task<IActionResult> GoodsCreationAsync(Good model, CancellationToken cancellationToken)
         {
             var emailTo = "nickita_piter@mail.ru";
             var subject = "test";
             var emailBody = "If u r reading this text, somewhere one little good was added to the Catalog";
             try
             {
-                catalog.Create(model);
+                cancellationToken.ThrowIfCancellationRequested();
+                catalog.Create(model, cancellationToken);
                 AsyncRetryPolicy? policy = Policy
                     .Handle<Exception>()
                     .WaitAndRetryAsync(new[]
@@ -41,7 +43,7 @@ namespace MarketPlace.Controllers
                     });
 
                 PolicyResult? result = await policy.ExecuteAndCaptureAsync(() =>
-                _emailService.SendEmailAsync(emailTo, subject, emailBody));
+                _emailService.SendEmailAsync(emailTo, subject, emailBody, _cancellationTokenSource.Token));
 
                 if (result.Outcome == OutcomeType.Failure)
                 {
@@ -70,13 +72,13 @@ namespace MarketPlace.Controllers
             }
         }
         [HttpPost]
-        public IActionResult GoodsRemoving(long article)
+        public IActionResult GoodsRemoving(long article, CancellationToken cancellationToken)
         {
             lock (_syncObj_1)
             {
                 try
                 {
-                    catalog.Delete(article);
+                    catalog.Delete(article, cancellationToken);
                 }
                 catch (Exception ex)
                 {

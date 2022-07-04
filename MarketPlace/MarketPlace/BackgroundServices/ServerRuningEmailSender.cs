@@ -5,19 +5,19 @@ namespace MarketPlace.BackgroundServices
 {
     public class ServerRuningEmailSender : BackgroundService
     {
-        private ILogger<ServerRuningEmailSender> _logger;
-        private IEmailService _emailService;
+        private readonly ILogger<ServerRuningEmailSender> _logger;
+        private IEmailService? _emailService;
         private readonly IServiceProvider _serviceProvider;
 
-        public ServerRuningEmailSender(IServiceProvider serviceProvider)
+        public ServerRuningEmailSender(IServiceProvider serviceProvider, ILogger<ServerRuningEmailSender> logger)
         {
+            _logger = logger;
             _serviceProvider = serviceProvider;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger = _serviceProvider.GetRequiredService<ILogger<ServerRuningEmailSender>>();
-            using (var serviceScope = _serviceProvider.CreateScope())
+            await using (var serviceScope = _serviceProvider.CreateAsyncScope())
             {
                 var provider = serviceScope.ServiceProvider;
                 _emailService = provider.GetRequiredService<IEmailService>();

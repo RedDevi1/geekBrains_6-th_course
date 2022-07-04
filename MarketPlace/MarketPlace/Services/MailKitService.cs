@@ -24,6 +24,9 @@ namespace MarketPlace.Services
 
         public async Task SendEmailAsync(string email, string subject, string message, CancellationToken cancellationToken)
         {
+            if (email is null) throw new ArgumentNullException(nameof(email));
+            if (subject is null) throw new ArgumentNullException(nameof(subject));
+            if (message is null) throw new ArgumentNullException(nameof(message));
             var emailMessage = new MimeMessage();
 
             emailMessage.From.Add(new MailboxAddress("MarketPlace", "asp2022gb@rodion-m.ru"));

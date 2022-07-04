@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 
 namespace MarketPlace.Services
 {
-    public class MailKitService : IEmailService, IDisposable
+    public class MailKitService : IEmailService, IAsyncDisposable
     {
         private readonly SmtpClient _client;
         private readonly SmtpCredentials _smtpCredentials;
@@ -15,10 +15,10 @@ namespace MarketPlace.Services
             _client = new SmtpClient();
         } 
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             if (_client.IsConnected)
-                _client.DisconnectAsync(true);
+                await _client.DisconnectAsync(true);
             _client.Dispose();
         }
 

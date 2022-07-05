@@ -4,6 +4,7 @@ using MarketPlace.Models;
 using Serilog;
 using Serilog.Events;
 using MarketPlace.BackgroundServices;
+using MarketPlace.DomainEvents.EventConsumers;
 
 Log.Logger = new LoggerConfiguration()
    .WriteTo.Console()
@@ -20,6 +21,7 @@ try
     builder.Services.AddScoped<IEmailService, MailKitService>();
     builder.Host.UseSerilog((ctx, conf) => conf.ReadFrom.Configuration(ctx.Configuration));
     builder.Services.AddHostedService<ServerRuningEmailSender>();
+    builder.Services.AddHostedService<ProductAddedEventHandler>();
 
     var app = builder.Build();
 

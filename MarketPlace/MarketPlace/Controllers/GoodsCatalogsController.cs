@@ -11,44 +11,19 @@ namespace MarketPlace.Controllers
         private readonly ILogger<GoodsCatalogsController> _logger;
         private readonly IGoodsCatalog catalog;
         private readonly object _syncObj_1 = new();
-        private readonly IEmailService _emailService;
-        private readonly CancellationTokenSource _cancellationTokenSource = new();
 
         public GoodsCatalogsController(ILogger<GoodsCatalogsController> logger, IGoodsCatalog catalog, IEmailService emailService)
         {
             _logger = logger;
             this.catalog = catalog;
-            _emailService = emailService;
         }
         [HttpPost]
-        public async Task<IActionResult> GoodsCreationAsync(Good model, CancellationToken cancellationToken)
-        {
-            var emailTo = "nickita_piter@mail.ru";
-            var subject = "test";
-            var emailBody = "If u r reading this text, somewhere one little good was added to the Catalog";
+        public IActionResult GoodsCreation(Good model, CancellationToken cancellationToken)
+        {          
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                catalog.Create(model, cancellationToken);
-                AsyncRetryPolicy? policy = Policy
-                    .Handle<Exception>()
-                    .WaitAndRetryAsync(new[]
-                    {
-                        TimeSpan.FromSeconds(1),
-                        TimeSpan.FromSeconds(2),
-                        TimeSpan.FromSeconds(3)
-                    }, (exception, retryAttempt) =>
-                    {
-                        _logger.LogWarning(exception, "Error while sending email. Retrying: {Attempt}", retryAttempt);
-                    });
-
-                PolicyResult? result = await policy.ExecuteAndCaptureAsync(() =>
-                _emailService.SendEmailAsync(emailTo, subject, emailBody, _cancellationTokenSource.Token));
-
-                if (result.Outcome == OutcomeType.Failure)
-                {
-                    _logger.LogError(result.FinalException, "There was an error while sending email");
-                }
+                catalog.Create(model, cancellationToken);               
             }
             catch (Exception ex)
             {

@@ -1,4 +1,5 @@
-﻿using MarketPlace.Interfaces;
+﻿using MarketPlace.Domain;
+using MarketPlace.Interfaces;
 using System.Collections.Concurrent;
 
 namespace MarketPlace.Models
@@ -12,12 +13,11 @@ namespace MarketPlace.Models
 
         public void Create(Good entity, CancellationToken cancellationToken)
         {
-            if (entity == null)
-            {
-                throw new ArgumentNullException(nameof(entity));               
-            }
+            if (entity is null) throw new ArgumentNullException(nameof(entity));               
+            
             cancellationToken.ThrowIfCancellationRequested();
             goodsCatalog.TryAdd(entity.Id, entity);
+            DomainEvents.DomainEventManager.Raise(new ProductAdded(entity));
         }
         public void Delete(long article, CancellationToken cancellationToken)
         {
@@ -36,6 +36,7 @@ namespace MarketPlace.Models
 
         public void Update(Good entity, CancellationToken cancellationToken)
         {
+            if (entity is null) throw new ArgumentNullException(nameof(entity));
             cancellationToken.ThrowIfCancellationRequested();
             throw new NotImplementedException();
         }

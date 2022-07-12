@@ -10,16 +10,18 @@ namespace MarketPlace.Models
 
         public ConcurrentDictionary<int, Good> Goods { get => goodsCatalog; }
 
-        public void Create(Good entity)
+        public void Create(Good entity, CancellationToken cancellationToken)
         {
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));               
             }
+            cancellationToken.ThrowIfCancellationRequested();
             goodsCatalog.TryAdd(entity.Id, entity);
         }
-        public void Delete(long article)
+        public void Delete(long article, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (goodsCatalog.Count > 0)
             {
                 var removingGood = goodsCatalog.FirstOrDefault(t => t.Value.Article == article);
@@ -32,8 +34,9 @@ namespace MarketPlace.Models
             return goodsCatalog;
         }
 
-        public void Update(Good entity)
+        public void Update(Good entity, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             throw new NotImplementedException();
         }
     }

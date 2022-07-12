@@ -5,6 +5,8 @@ using Serilog;
 using Serilog.Events;
 using MarketPlace.BackgroundServices;
 using MarketPlace.DomainEvents.EventConsumers;
+using Microsoft.AspNetCore.HttpLogging;
+using MarketPlace.Middleware;
 
 Log.Logger = new LoggerConfiguration()
    .WriteTo.Console()
@@ -22,6 +24,13 @@ try
     builder.Host.UseSerilog((ctx, conf) => conf.ReadFrom.Configuration(ctx.Configuration));
     builder.Services.AddHostedService<ServerRuningEmailSender>();
     builder.Services.AddHostedService<ProductAddedEventHandler>();
+    builder.Services.AddHttpLogging(options =>
+    {
+        options.LoggingFields = HttpLoggingFields.RequestHeaders
+        | HttpLoggingFields.ResponseHeaders
+        | HttpLoggingFields.RequestBody
+        | HttpLoggingFields.ResponseBody;
+    });
 
     var app = builder.Build();
 
@@ -32,8 +41,11 @@ try
         // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
         app.UseHsts();
     }
-
+    
+    app.UseHttpLogging();
     app.UseHttpsRedirection();
+    app.UseMiddleware<HttpPagesTraversesCountMiddleware>();
+    //app.UseMiddleware<BrowserFilterMiddleware>();
     app.UseStaticFiles();
     app.UseSerilogRequestLogging();
     app.UseRouting();
@@ -43,7 +55,7 @@ try
     app.MapControllerRoute(
         name: "default",
         pattern: "{controller=Home}/{action=Index}/{id?}");
-
+    
     app.Run();
 }
 catch (Exception ex)

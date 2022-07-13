@@ -7,6 +7,7 @@ using MarketPlace.BackgroundServices;
 using MarketPlace.DomainEvents.EventConsumers;
 using Microsoft.AspNetCore.HttpLogging;
 using MarketPlace.Middleware;
+using MarketPlace.Domain.Services;
 
 Log.Logger = new LoggerConfiguration()
    .WriteTo.Console()
@@ -21,6 +22,7 @@ try
     builder.Services.AddSingleton<IGoodsCatalog, GoodsCatalog>();
     builder.Services.Configure<SmtpCredentials>(builder.Configuration.GetSection("SmtpCredentials"));
     builder.Services.AddScoped<IEmailService, MailKitService>();
+    builder.Services.AddSingleton<IMetricsService, MetricsService>();
     builder.Host.UseSerilog((ctx, conf) => conf.ReadFrom.Configuration(ctx.Configuration));
     builder.Services.AddHostedService<ServerRuningEmailSender>();
     builder.Services.AddHostedService<ProductAddedEventHandler>();
@@ -45,7 +47,7 @@ try
     app.UseHttpLogging();
     app.UseHttpsRedirection();
     app.UseMiddleware<HttpPagesTraversesCountMiddleware>();
-    //app.UseMiddleware<BrowserFilterMiddleware>();
+    app.UseMiddleware<BrowserFilterMiddleware>();
     app.UseStaticFiles();
     app.UseSerilogRequestLogging();
     app.UseRouting();

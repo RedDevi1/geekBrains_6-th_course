@@ -1,31 +1,35 @@
-﻿namespace MarketPlace.Middleware
+﻿using MarketPlace.Domain.Services;
+using MarketPlace.Interfaces;
+
+namespace MarketPlace.Middleware
 {
     public class HttpPagesTraversesCountMiddleware
     {
         private readonly RequestDelegate _next;
-        private int goodsCreationPageCount;
-        private int productPageCount;
-        private int goodsRemovingPageCount;
-
-        public int GoodsCreationPageCount { get => goodsCreationPageCount; }
-        public int ProductPageCount { get => productPageCount; }
-        public int GoodsRemovingPageCount { get => goodsRemovingPageCount; }
-
         public HttpPagesTraversesCountMiddleware(RequestDelegate next)
         {
             _next = next;
         }
 
-        public async Task Invoke(HttpContext context)
+        public async Task Invoke(HttpContext context, IMetricsService service)
         {
             if (context.Request.Path.ToString().Contains("GoodsCreation"))
-                Interlocked.Increment(ref goodsCreationPageCount);
+            { 
+                service.GoodsCreationPageUrl = context.Request.Path.ToString();
+                service.GoodsCreationPageCountIncrement(); 
+            }
 
             if (context.Request.Path.ToString().Contains("Product"))
-                Interlocked.Increment(ref productPageCount);
+            { 
+                service.ProductPageUrl = context.Request.Path.ToString();
+                service.ProductPageCountIncrement(); 
+            }
 
             if (context.Request.Path.ToString().Contains("GoodsRemoving"))
-                Interlocked.Increment(ref goodsRemovingPageCount);
+            { 
+                service.GoodsRemovingPageUrl = context.Request.Path.ToString();
+                service.GoodsRemovingPageCountIncrement(); 
+            }
 
             await _next(context);
         }

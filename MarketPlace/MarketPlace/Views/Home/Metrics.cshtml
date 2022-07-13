@@ -1,11 +1,11 @@
-﻿@using MarketPlace.Middleware
-@model HttpPagesTraversesCountMiddleware
+﻿@using MarketPlace.Domain.Services
+@model MetricsService
 
 @{
     ViewData["Title"] = "Количество переходов на web-ресурсы:";
 }
 <h1>@ViewData["Title"]</h1>
 
-<div> Адрес страницы добавления товара: @Model.GoodsCreationPageCount</div>
-<div> Адрес страницы удаления товара: @Model.GoodsRemovingPageCount</div>
-<div> Адрес страницы отображения всех товаров в каталоге: @Model.ProductPageCount</div>
+<div> @Model.GoodsCreationPageUrl: @Model.GoodsCreationPageCount</div>
+<div> @Model.GoodsRemovingPageUrl: @Model.GoodsRemovingPageCount</div>
+<div> @Model.ProductPageUrl: @Model.ProductPageCount</div>

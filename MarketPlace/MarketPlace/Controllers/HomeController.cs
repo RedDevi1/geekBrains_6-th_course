@@ -1,4 +1,5 @@
-﻿using MarketPlace.Middleware;
+﻿using MarketPlace.Interfaces;
+using MarketPlace.Middleware;
 using MarketPlace.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
@@ -8,11 +9,11 @@ namespace MarketPlace.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly HttpPagesTraversesCountMiddleware _httpPagesTraversesCountMiddleware;
-        public HomeController(ILogger<HomeController> logger, HttpPagesTraversesCountMiddleware httpPagesTraversesCountMiddleware)
+        private readonly IMetricsService _metricsService;
+        public HomeController(ILogger<HomeController> logger, IMetricsService metricsService)
         {
             _logger = logger;
-            _httpPagesTraversesCountMiddleware = httpPagesTraversesCountMiddleware;
+            _metricsService = metricsService;
         }
 
         public IActionResult Index()
@@ -28,7 +29,7 @@ namespace MarketPlace.Controllers
         
         public IActionResult Metrics()
         {
-            return View(_httpPagesTraversesCountMiddleware);
+            return View(_metricsService);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

@@ -1,0 +1,11 @@
+﻿@using MarketPlace.Domain.Services
+@model MetricsService
+
+@{
+    ViewData["Title"] = "Количество переходов на web-ресурсы:";
+}
+<h1>@ViewData["Title"]</h1>
+
+<div> @Model.GoodsCreationPageUrl: @Model.GoodsCreationPageCount</div>
+<div> @Model.GoodsRemovingPageUrl: @Model.GoodsRemovingPageCount</div>
+<div> @Model.ProductPageUrl: @Model.ProductPageCount</div>
